@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linktrans 邮件运营驾驶舱</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #F4F6FA;
+  --bg-card: #FFFFFF;
+  --bg-header: #0E2447;
+  --border: #E1E6EF;
+  --border-strong: #CBD3E0;
+  --text: #1A2438;
+  --text-secondary: #5A6780;
+  --text-tertiary: #8A97B0;
+  --text-inverse: #FFFFFF;
+  --primary: #2E5BFF;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --purple: #8B5CF6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F172A;
+    --bg-card: #1E293B;
+    --bg-header: #0B1A33;
+    --border: #334155;
+    --border-strong: #475569;
+    --text: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-tertiary: #64748B;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F172A;
+  --bg-card: #1E293B;
+  --bg-header: #0B1A33;
+  --border: #334155;
+  --border-strong: #475569;
+  --text: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Header */
+.header {
+  background: var(--bg-header);
+  color: var(--text-inverse);
+  padding: 24px 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.header-title {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+.header-subtitle {
+  font-size: 13px;
+  color: #B4C4DB;
+}
+
+/* Container */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+/* Section */
+.section {
+  margin-bottom: 40px;
+}
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--primary);
+}
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-icon {
+  font-size: 24px;
+}
+.section-badge {
+  background: var(--primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary);
+}
+.kpi-card.success::before { background: var(--success); }
+.kpi-card.warning::before { background: var(--warning); }
+.kpi-card.danger::before { background: var(--danger); }
+.kpi-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.kpi-value {
+  font-size: 32px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chart Grid */
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+.chart-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.chart-box {
+  position: relative;
+  height: 320px;
+}
+
+/* Employee Table */
+.employee-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+.table-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--bg);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background: var(--bg);
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+tr:hover td {
+  background: rgba(46, 91, 255, 0.03);
+}
+.employee-name {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-dot.green { background: var(--success); }
+.status-dot.yellow { background: var(--warning); }
+.status-dot.red { background: var(--danger); }
+.status-dot.gray { background: var(--text-tertiary); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container { padding: 16px; }
+  .chart-grid { grid-template-columns: 1fr; }
+  .header { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-title">📊 Linktrans 邮件运营驾驶舱</div>
+  <div class="header-subtitle" id="updateTime">数据更新时间：加载中...</div>
+</div>
+
+<div class="container">
+
+  <!-- Section 1: Overview KPIs -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-icon">📈</span>
+        核心指标总览
+      </div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">客户来信数</div>
+        <div class="kpi-value" id="kpi-customerIncoming">0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">同事发件数</div>
+        <div class="kpi-value" id="kpi-colleaguesSent">0</div>
+      </div>
+      <div class="kpi-card success">
+        <div class="kpi-label">客服 SLA 达标率</div>
+        <div class="kpi-value" id="kpi-slaRate">0%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">客服首次回复中位数</div>
+        <div class="kpi-value" id="kpi-medianReplyMin">0min</div>
+      </div>
+      <div class="kpi-card success">
+        <div class="kpi-label">销售有效回复率</div>
+        <div class="kpi-value" id="kpi-effectiveReplyRate">0%</div>
+      </div>
+      <div class="kpi-card danger">
+        <div class="kpi-label">待处理风险</div>
+        <div class="kpi-value" id="kpi-pendingRisks">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: CS Team - People First -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-icon">🎧</span>
+        客服团队 - 人员对比
+        <span class="section-badge">Mia · Jessy · Jessica</span>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">📧 客户来信量与发件量</div>
+        <div class="chart-box">
+          <canvas id="csVolumeChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">✅ SLA 达标率</div>
+        <div class="chart-box">
+          <canvas id="csSlaChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⏱️ 首次回复中位数</div>
+        <div class="chart-box">
+          <canvas id="csReplyTimeChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⚠️ 超 4h 未回与隔夜未回</div>
+        <div class="chart-box">
+          <canvas id="csOverdueChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">📋 在办线程数</div>
+        <div class="chart-box">
+          <canvas id="csActiveThreadsChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CS Table -->
+    <div class="employee-table">
+      <div class="table-header">客服人员详细指标</div>
+      <table>
+        <thead>
+          <tr>
+            <th>员工</th>
+            <th>收件</th>
+            <th>发件</th>
+            <th>SLA 达标率</th>
+            <th>响应中位数</th>
+            <th>隔夜未回</th>
+            <th>在办线程</th>
+          </tr>
+        </thead>
+        <tbody id="csEmployeeTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Section 3: Sales Team - People First -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">
+        <span class="section-icon">💼</span>
+        销售团队 - 人员对比
+        <span class="section-badge">Agnes · Vanessa · Tina · Angelia</span>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">📧 外展发件与客户回复</div>
+        <div class="chart-box">
+          <canvas id="salesVolumeChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">✅ 有效回复率（含分子/分母）</div>
+        <div class="chart-box">
+          <canvas id="salesEffectiveChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">👍 正向回复数量</div>
+        <div class="chart-box">
+          <canvas id="salesPositiveChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🎯 询盘 1h 响应达标率</div>
+        <div class="chart-box">
+          <canvas id="salesInquiryChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">⏰ 应跟未跟数量</div>
+        <div class="chart-box">
+          <canvas id="salesFollowUpChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Table -->
+    <div class="employee-table">
+      <div class="table-header">销售人员详细指标</div>
+      <table>
+        <thead>
+          <tr>
+            <th>员工</th>
+            <th>发件</th>
+            <th>收件</th>
+            <th>有效回复率</th>
+            <th>正向回复</th>
+            <th>询盘响应</th>
+            <th>应跟未跟</th>
+          </tr>
+        </thead>
+        <tbody id="salesEmployeeTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+Chart.defaults.font.family = "'Inter', 'Noto Sans SC', sans-serif";
+Chart.defaults.color = '#5A6780';
+
+let dashboardData = null;
+const charts = {};
+
+// 加载数据
+async function loadDashboardData() {
+  try {
+    const resp = await fetch('dashboard-data.json');
+    dashboardData = await resp.json();
+    console.log('✓ 数据加载成功:', dashboardData.reportDate);
+    updateDashboard();
+  } catch (e) {
+    console.error('✗ 数据加载失败:', e.message);
+  }
+}
+
+// 更新驾驶舱
+function updateDashboard() {
+  if (!dashboardData) return;
+
+  // 更新 KPI
+  const ov = dashboardData.overview || {};
+  document.getElementById('kpi-customerIncoming').textContent = ov.customerIncoming || 0;
+  document.getElementById('kpi-colleaguesSent').textContent = ov.colleaguesSent || 0;
+  document.getElementById('kpi-slaRate').textContent = (ov.slaRate || 0) + '%';
+  document.getElementById('kpi-medianReplyMin').textContent = (ov.medianReplyMin || 0) + 'min';
+  document.getElementById('kpi-effectiveReplyRate').textContent = (ov.effectiveReplyRate || 0) + '%';
+  document.getElementById('kpi-pendingRisks').textContent = ov.pendingRisks || 0;
+
+  // 更新时间
+  const updateTime = new Date(dashboardData.generatedAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+  document.getElementById('updateTime').textContent = `数据更新时间：${updateTime} | 统计范围：${dashboardData.reportDate}`;
+
+  // 初始化图表
+  initCSCharts();
+  initSalesCharts();
+
+  // 更新表格
+  updateCSTable();
+  updateSalesTable();
+}
+
+// 客服图表（人员对比）
+function initCSCharts() {
+  const people = dashboardData.cs?.people || [];
+  const names = people.map(p => p.name);
+
+  // 来信与发件
+  if (charts.csVolume) charts.csVolume.destroy();
+  charts.csVolume = new Chart(document.getElementById('csVolumeChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        { label: '收件', data: people.map(p => p.receivedCount), backgroundColor: '#2E5BFF' },
+        { label: '发件', data: people.map(p => p.sentCount), backgroundColor: '#10B981' }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } } }
+  });
+
+  // SLA 达标率
+  if (charts.csSla) charts.csSla.destroy();
+  charts.csSla = new Chart(document.getElementById('csSlaChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{
+        label: 'SLA 达标率 (%)',
+        data: people.map(p => p.slaRate),
+        backgroundColor: people.map(p => p.slaRate >= 90 ? '#10B981' : p.slaRate >= 85 ? '#F59E0B' : '#DC2626')
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
+  });
+
+  // 响应中位数
+  if (charts.csReplyTime) charts.csReplyTime.destroy();
+  charts.csReplyTime = new Chart(document.getElementById('csReplyTimeChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{
+        label: '响应中位数 (min)',
+        data: people.map(p => p.medianReplyMin),
+        backgroundColor: people.map(p => p.medianReplyMin <= 30 ? '#10B981' : p.medianReplyMin <= 60 ? '#F59E0B' : '#DC2626')
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // 超 4h 与隔夜
+  if (charts.csOverdue) charts.csOverdue.destroy();
+  charts.csOverdue = new Chart(document.getElementById('csOverdueChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        { label: '>4h 未回', data: people.map(p => p.overdue4h), backgroundColor: '#F59E0B' },
+        { label: '隔夜未回', data: people.map(p => p.overnight), backgroundColor: '#DC2626' }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } } }
+  });
+
+  // 在办线程
+  if (charts.csActiveThreads) charts.csActiveThreads.destroy();
+  charts.csActiveThreads = new Chart(document.getElementById('csActiveThreadsChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{ label: '在办线程数', data: people.map(p => p.activeThreads), backgroundColor: '#8B5CF6' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// 销售图表（人员对比）
+function initSalesCharts() {
+  const people = dashboardData.sales?.people || [];
+  const names = people.map(p => p.name);
+
+  // 发件与回复
+  if (charts.salesVolume) charts.salesVolume.destroy();
+  charts.salesVolume = new Chart(document.getElementById('salesVolumeChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        { label: '发件', data: people.map(p => p.sentCount), backgroundColor: '#2E5BFF' },
+        { label: '收件', data: people.map(p => p.receivedCount), backgroundColor: '#10B981' }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } } }
+  });
+
+  // 有效回复率
+  if (charts.salesEffective) charts.salesEffective.destroy();
+  charts.salesEffective = new Chart(document.getElementById('salesEffectiveChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        {
+          label: '有效回复率 (%)',
+          data: people.map(p => p.effectiveReplyRate),
+          backgroundColor: people.map(p => p.effectiveReplyRate >= 70 ? '#10B981' : p.effectiveReplyRate >= 50 ? '#F59E0B' : '#DC2626'),
+          yAxisID: 'y'
+        },
+        {
+          label: '有效回复数 / 触达数',
+          data: people.map(p => p.effectiveReplyCount),
+          type: 'line',
+          borderColor: '#8B5CF6',
+          backgroundColor: '#8B5CF6',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { type: 'linear', position: 'left', max: 100 },
+        y1: { type: 'linear', position: 'right', grid: { display: false } }
+      }
+    }
+  });
+
+  // 正向回复
+  if (charts.salesPositive) charts.salesPositive.destroy();
+  charts.salesPositive = new Chart(document.getElementById('salesPositiveChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{ label: '正向回复数', data: people.map(p => p.positiveCount), backgroundColor: '#10B981' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+
+  // 询盘响应
+  if (charts.salesInquiry) charts.salesInquiry.destroy();
+  charts.salesInquiry = new Chart(document.getElementById('salesInquiryChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [
+        {
+          label: '1h 达标率 (%)',
+          data: people.map(p => p.inquiry1hRate),
+          backgroundColor: people.map(p => p.inquiry1hRate >= 80 ? '#10B981' : p.inquiry1hRate >= 50 ? '#F59E0B' : p.inquiry1hRate > 0 ? '#F59E0B' : '#8A97B0')
+        },
+        {
+          label: '询盘数',
+          data: people.map(p => p.inquiryCount),
+          type: 'line',
+          borderColor: '#2E5BFF',
+          backgroundColor: '#2E5BFF',
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { type: 'linear', position: 'left', beginAtZero: true, max: 100 },
+        y1: { type: 'linear', position: 'right', grid: { display: false } }
+      },
+      plugins: {
+        legend: { position: 'top', align: 'end' }
+      }
+    }
+  });
+
+  // 应跟未跟
+  if (charts.salesFollowUp) charts.salesFollowUp.destroy();
+  charts.salesFollowUp = new Chart(document.getElementById('salesFollowUpChart'), {
+    type: 'bar',
+    data: {
+      labels: names,
+      datasets: [{ label: '应跟未跟', data: people.map(p => p.shouldFollowUp2nd), backgroundColor: '#DC2626' }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+// 更新客服表格
+function updateCSTable() {
+  const people = dashboardData.cs?.people || [];
+  document.getElementById('csEmployeeTable').innerHTML = people.map(p => `
+    <tr>
+      <td><div class="employee-name"><span class="status-dot ${p.statusLight === '🟢' ? 'green' : p.statusLight === '🟡' ? 'yellow' : p.statusLight === '🔴' ? 'red' : 'gray'}"></span>${p.name}</div></td>
+      <td>${p.receivedCount}</td>
+      <td>${p.sentCount}</td>
+      <td>${p.slaRate}%</td>
+      <td>${p.medianReplyMin}min</td>
+      <td style="color: ${p.overnight > 0 ? 'var(--danger)' : 'inherit'}">${p.overnight}</td>
+      <td>${p.activeThreads}</td>
+    </tr>
+  `).join('');
+}
+
+// 更新销售表格
+function updateSalesTable() {
+  const people = dashboardData.sales?.people || [];
+  document.getElementById('salesEmployeeTable').innerHTML = people.map(p => `
+    <tr>
+      <td><div class="employee-name"><span class="status-dot ${p.statusLight === '🟢' ? 'green' : p.statusLight === '🟡' ? 'yellow' : p.statusLight === '🔴' ? 'red' : 'gray'}"></span>${p.name}</div></td>
+      <td>${p.sentCount}</td>
+      <td>${p.receivedCount}</td>
+      <td>${p.effectiveReplyRate}%</td>
+      <td>${p.positiveCount}</td>
+      <td>${p.inquiry1hRate}%</td>
+      <td style="color: ${p.shouldFollowUp2nd > 0 ? 'var(--danger)' : 'inherit'}">${p.shouldFollowUp2nd}</td>
+    </tr>
+  `).join('');
+}
+
+// 初始化
+loadDashboardData();
+</script>
+
+</body>
+</html>
